@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A10"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/appTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="FX CALCULATOR"
+        android:textColor="#00E5FF"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp" />
+
+    <EditText
+        android:id="@+id/inputMath"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_below="@id/appTitle"
+        android:background="#1C1C24"
+        android:hint="Enter equation (e.g., x^2 - 5x + 6 = 0)"
+        android:textColorHint="#555"
+        android:textColor="#FFF"
+        android:padding="15dp"
+        android:textSize="18sp"
+        android:layout_marginBottom="15dp"/>
+
+    <Button
+        android:id="@+id/btnSolve"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/inputMath"
+        android:text="SOLVE &amp; FIND ROOTS"
+        android:backgroundTint="#00E5FF"
+        android:textColor="#000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="15dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btnSolve"
+        android:layout_above="@id/adView"
+        android:layout_marginBottom="10dp"
+        android:background="#12121A"
+        android:padding="15dp">
+
+        <TextView
+            android:id="@+id/tvResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Solution will appear here..."
+            android:textColor="#00E5FF"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp"/>
+    </ScrollView>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
+    </com.google.android.gms.ads.AdView>
+</RelativeLayout>
