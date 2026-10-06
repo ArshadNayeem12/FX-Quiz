@@ -17,13 +17,17 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Generate Android Engine (Gradle)
+      - name: Generate Modern Android Engine
         run: |
-          echo "include ':app'" > settings.gradle
+          cat << 'INNER_EOF' > settings.gradle
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
+          rootProject.name = "FX-Quiz"
+          include ':app'
+          INNER_EOF
+          
           cat << 'INNER_EOF' > build.gradle
-          buildscript { repositories { google(); mavenCentral() }
-          dependencies { classpath 'com.android.tools.build:gradle:8.1.1' } }
-          allprojects { repositories { google(); mavenCentral() } }
+          plugins { id 'com.android.application' version '8.1.1' apply false }
           INNER_EOF
           
           cat << 'INNER_EOF' > app/build.gradle
@@ -35,23 +39,20 @@ jobs:
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
               implementation 'com.google.android.gms:play-services-ads:23.0.0'
           }
           INNER_EOF
           
-          # Fix missing icons & styles
-          sed -i '/android:icon/d' app/src/main/AndroidManifest.xml
-          sed -i '/android:roundIcon/d' app/src/main/AndroidManifest.xml
           mkdir -p app/src/main/res/values
           cat << 'INNER_EOF' > app/src/main/res/values/themes.xml
           <resources><style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style></resources>
           INNER_EOF
           
-          # Inject Secret API Key safely
           sed -i "s/YAHAN_APNI_API_KEY_DAAL/${{ secrets.GEMINI_API_KEY }}/g" app/src/main/java/com/ceo/quizapp/QuizActivity.java
 
-      - name: Build APK with Gradle
-        run: gradle assembleDebug
+      - name: Build APK
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
