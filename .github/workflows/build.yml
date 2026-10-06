@@ -1,0 +1,60 @@
+name: Build APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Generate Android Engine (Gradle)
+        run: |
+          echo "include ':app'" > settings.gradle
+          cat << 'INNER_EOF' > build.gradle
+          buildscript { repositories { google(); mavenCentral() }
+          dependencies { classpath 'com.android.tools.build:gradle:8.1.1' } }
+          allprojects { repositories { google(); mavenCentral() } }
+          INNER_EOF
+          
+          cat << 'INNER_EOF' > app/build.gradle
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.ceo.quizapp'
+              compileSdk 34
+              defaultConfig { applicationId "com.ceo.quizapp"; minSdk 24; targetSdk 34; versionCode 1; versionName "1.0" }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.gms:play-services-ads:23.0.0'
+          }
+          INNER_EOF
+          
+          # Fix missing icons & styles
+          sed -i '/android:icon/d' app/src/main/AndroidManifest.xml
+          sed -i '/android:roundIcon/d' app/src/main/AndroidManifest.xml
+          mkdir -p app/src/main/res/values
+          cat << 'INNER_EOF' > app/src/main/res/values/themes.xml
+          <resources><style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style></resources>
+          INNER_EOF
+          
+          # Inject Secret API Key safely
+          sed -i "s/YAHAN_APNI_API_KEY_DAAL/${{ secrets.GEMINI_API_KEY }}/g" app/src/main/java/com/ceo/quizapp/QuizActivity.java
+
+      - name: Build APK with Gradle
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FX-Quiz-App
+          path: app/build/outputs/apk/debug/app-debug.apk
