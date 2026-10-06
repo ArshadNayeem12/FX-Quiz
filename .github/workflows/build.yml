@@ -17,17 +17,23 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Force Exact Gradle Version
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.1.1'
+
       - name: Setup Android Project Files
         run: |
-          cat << 'EOF' > settings.gradle
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
-          rootProject.name = "FX-Quiz"
-          include ':app'
-          EOF
+          echo "include ':app'" > settings.gradle
           
           cat << 'EOF' > build.gradle
-          plugins { id 'com.android.application' version '8.1.1' apply false }
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.1.1' }
+          }
+          allprojects {
+              repositories { google(); mavenCentral() }
+          }
           EOF
           
           cat << 'EOF' > app/build.gradle
@@ -49,13 +55,13 @@ jobs:
           <resources><style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style></resources>
           EOF
           
+          sed -i 's/android:icon="@mipmap\/ic_launcher"//g' app/src/main/AndroidManifest.xml
+          sed -i 's/android:roundIcon="@mipmap\/ic_launcher_round"//g' app/src/main/AndroidManifest.xml
+          
           sed -i "s/YAHAN_APNI_API_KEY_DAAL/${{ secrets.GEMINI_API_KEY }}/g" app/src/main/java/com/ceo/quizapp/QuizActivity.java
 
-      - name: Force Compatible Engine
-        run: gradle wrapper --gradle-version 8.2
-
       - name: Compile APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK Download Link
         uses: actions/upload-artifact@v4
