@@ -11,50 +11,53 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Generate Modern Android Engine
+      - name: Setup Android Project Files
         run: |
-          cat << 'INNER_EOF' > settings.gradle
+          cat << 'EOF' > settings.gradle
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
           rootProject.name = "FX-Quiz"
           include ':app'
-          INNER_EOF
+          EOF
           
-          cat << 'INNER_EOF' > build.gradle
+          cat << 'EOF' > build.gradle
           plugins { id 'com.android.application' version '8.1.1' apply false }
-          INNER_EOF
+          EOF
           
-          cat << 'INNER_EOF' > app/build.gradle
+          cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
           android {
               namespace 'com.ceo.quizapp'
               compileSdk 34
               defaultConfig { applicationId "com.ceo.quizapp"; minSdk 24; targetSdk 34; versionCode 1; versionName "1.0" }
+              compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.11.0'
               implementation 'com.google.android.gms:play-services-ads:23.0.0'
           }
-          INNER_EOF
+          EOF
           
           mkdir -p app/src/main/res/values
-          cat << 'INNER_EOF' > app/src/main/res/values/themes.xml
+          cat << 'EOF' > app/src/main/res/values/themes.xml
           <resources><style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style></resources>
-          INNER_EOF
+          EOF
           
           sed -i "s/YAHAN_APNI_API_KEY_DAAL/${{ secrets.GEMINI_API_KEY }}/g" app/src/main/java/com/ceo/quizapp/QuizActivity.java
 
-      - name: Build APK
-        run: gradle assembleDebug --no-daemon
+      - name: Force Compatible Engine
+        run: gradle wrapper --gradle-version 8.2
 
-      - name: Upload APK
+      - name: Compile APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK Download Link
         uses: actions/upload-artifact@v4
         with:
           name: FX-Quiz-App
