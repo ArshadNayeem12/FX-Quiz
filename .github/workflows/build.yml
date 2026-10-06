@@ -26,6 +26,12 @@ jobs:
         run: |
           echo "include ':app'" > settings.gradle
           
+          # Nayi file: AndroidX mode ON karne ke liye
+          cat << 'EOF' > gradle.properties
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+          
           cat << 'EOF' > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
